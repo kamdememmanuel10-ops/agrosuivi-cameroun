@@ -1,0 +1,16 @@
+# Secrets - NE JAMAIS POUSSER SUR GITHUB
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+
+# Base de données locale
+*.db
+*.sqlite
+
+# OS
+.DS_Store
+Thumbs.db
