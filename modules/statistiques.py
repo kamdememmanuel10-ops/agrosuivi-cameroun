@@ -5,14 +5,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 # ─────────────────────────────────────────────
-#  CONFIG PAGE
-# ─────────────────────────────────────────────
-st.set_page_config(
-    page_title="Statistiques – AGROSUIVI CAMEROUN",
-    page_icon="📊",
-    layout="wide",
-)
-# ─────────────────────────────────────────────
 #  CSS CUSTOM
 # ─────────────────────────────────────────────
 st.markdown("""
