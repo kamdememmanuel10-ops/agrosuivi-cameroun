@@ -74,7 +74,7 @@ with col1:
         rc = rc[rc["nb"] >= 1].sort_values("moy", ascending=True)
         fig = go.Figure()
         fig.add_trace(go.Bar(y=rc["culture"], x=rc["moy"], orientation="h", name="Moyenne",
-                             marker_color="#2e7d32", text=pd.to_numeric(rc["moy"], errors='coerce').round(0).astype(int), textposition="outside"))
+                             marker_color="#2e7d32", text=pd.to_numeric(rc["moy"], errors='coerce').round(0).astype(Int64), textposition="outside"))
         fig.add_trace(go.Scatter(y=rc["culture"], x=rc["med"], mode="markers", name="Médiane",
                                  marker=dict(size=10, color="#f57f17", symbol="diamond")))
         fig.update_layout(height=380, template="plotly_white",
