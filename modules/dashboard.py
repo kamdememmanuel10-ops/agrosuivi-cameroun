@@ -138,5 +138,5 @@ summary.columns = ["Culture","Nb fiches","Rdmt moy.","Rdmt médian","Max","Min",
                         "Superficie (ha)","Prix moy (FCFA/kg)","Revenu moy (FCFA)"]
 for col in ["Rdmt moy.","Rdmt médian","Max","Min","Prix moy (FCFA/kg)","Revenu moy (FCFA)"]:
     summary[col] = pd.to_numeric(summary[col], errors='coerce').round(0).astype('Int64')
-summary["Superficie (ha)"] = summary["Superficie (ha)"].round(1)
+summary["Superficie (ha)"] = pd.to_numeric(summary["Superficie (ha)"], errors='coerce').round(1)
 st.dataframe(summary, use_container_width=True, hide_index=True)
