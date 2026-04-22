@@ -114,7 +114,7 @@ with col4:
         colors_e = ["#1b5e20" if e != "Aucun" else "#ef9a9a" for e in eng_df["engrais"]]
         fig4 = go.Figure(go.Bar(
             x=eng_df["engrais"], y=eng_df["moy"],
-            text=eng_df["moy"].round(0).astype(int),
+            text=pd.to_numeric(eng_df["moy"], errors='coerce').round(0).astype('Int64'),
             textposition="outside",
             marker_color=colors_e,
         ))
