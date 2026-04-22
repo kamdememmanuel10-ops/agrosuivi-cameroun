@@ -77,7 +77,7 @@ with tab3:
         comp.columns = ["Région","Nb","Rdmt moy.","Rdmt méd.","Superficie (ha)","% Irrigation","% Engrais"]
         comp = comp.sort_values("Rdmt moy.", ascending=False)
         for c in comp.columns[2:]:
-            comp[c] = comp[c].round(1)
+            comp[c] = pd.to_numeric(comp[c], errors='coerce').round(1)
         st.dataframe(comp, hide_index=True, use_container_width=True)
         # Radar
         fig_radar = go.Figure()
