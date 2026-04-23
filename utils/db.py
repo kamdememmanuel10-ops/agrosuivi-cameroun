@@ -1,99 +1,144 @@
-
-import pandas as pd
 import hashlib
 import streamlit as st
+import pandas as pd
 from supabase import create_client
 
-# — Connexion Supabase (API REST, port 443) —
+
+# ── Connexion Supabase ────────────────────────────────────────
 @st.cache_resource
 def get_supabase():
     url = st.secrets["SUPABASE_URL"]
     key = st.secrets["SUPABASE_KEY"]
     return create_client(url, key)
 
+
+# ── Utilitaire mot de passe ───────────────────────────────────
 def _hash_pwd(pwd: str) -> str:
     return hashlib.sha256(pwd.encode()).hexdigest()
 
-# — Initialisation DB —
+
+# ── Initialisation DB ─────────────────────────────────────────
 def init_db():
-    """Vérifie la connexion et crée l'admin si absent."""
+    """Vérifie la connexion et crée l'admin par défaut si absent."""
     try:
         sb = get_supabase()
         res = sb.table("utilisateurs").select("id").execute()
         if len(res.data) == 0:
             pwd = _hash_pwd("admin2025")
             sb.table("utilisateurs").insert({
-                "nom": "Administrateur",
-                "email": "admin@agrosuivi.cm",
+                "nom":          "Administrateur",
+                "email":        "admin@agrosuivi.cm",
                 "mot_de_passe": pwd,
-                "role": "admin",
-                "actif": 1
+                "role":         "admin",
+                "actif":        1,
             }).execute()
     except Exception as e:
         st.error(f"Erreur de connexion Supabase : {e}")
         st.info("Vérifiez vos secrets SUPABASE_URL et SUPABASE_KEY dans .streamlit/secrets.toml")
         st.stop()
 
-def get_fiches_user(user_id):
-    sb = get_supabase()
-    return sb.table("fiches").select("*").eq("user_id", user_id).execute().data
 
-# — Authentification —
+# ── Authentification ──────────────────────────────────────────
 def verify_user(email: str, pwd: str):
     """Retourne le dict utilisateur si les credentials sont valides, sinon None."""
-    sb = get_supabase()
+    sb     = get_supabase()
     hashed = _hash_pwd(pwd)
-    res = sb.table("utilisateurs")\
-            .select("*")\
-            .eq("email", email)\
-            .eq("mot_de_passe", hashed)\
-            .eq("actif", 1)\
-            .execute()
+    res    = (
+        sb.table("utilisateurs")
+        .select("*")
+        .eq("email", email)
+        .eq("mot_de_passe", hashed)
+        .eq("actif", 1)
+        .execute()
+    )
     return res.data[0] if res.data else None
 
-# — Stats rapides —
-def get_stats_rapides():
-    sb = get_supabase()
-    fiches = sb.table("fiches").select("id, culture, region").eq("valide", 1).execute()
-    rows = fiches.data
-    nb_f = len(rows)
-    nb_cu = len(set(r["culture"] for r in rows if r.get("culture")))
-    nb_re = len(set(r["region"] for r in rows if r.get("region")))
-    return {"nb_fiches": nb_f, "nb_cultures": nb_cu, "nb_regions": nb_re}
 
-# — Fiches —
-def get_all_fiches():
-    sb = get_supabase()
-    res = sb.table("fiches").select("*").eq("valide", 1).order("date_collecte", desc=True).execute()
-    if not res.data:
-        return pd.DataFrame(columns=["id", "culture", "region", "saison", "valide", "rendement_kg_ha", "nom_exploitant", "superficie_ha", "revenu_estime", "problemes", "production_total_kg", "irrigation", "type_engrais", "prix_vente_fcfa_kg", "lat", "lon"])
-    return pd.DataFrame(res.data)
+# ── Fiches ────────────────────────────────────────────────────
+FICHES_COLUMNS = [
+    "id", "code_fiche", "date_collecte", "user_id",
+    "nom_exploitant", "telephone", "region", "departement", "arrondissement",
+    "coordonnees_lat", "coordonnees_lon", "membre_cooperative",
+    "culture", "variete", "saison", "age_plantation_ans",
+    "superficie_ha", "rendement_kg_ha", "production_totale_kg",
+    "type_sol", "qualite_sol", "prix_vente_fcfa_kg", "acces_marche_km", "revenu_estime",
+    "type_engrais", "dose_engrais_kg_ha", "irrigation", "source_eau",
+    "main_oeuvre", "nb_actifs",
+    "problemes", "solutions_appliquees", "observations",
+    "valide", "created_at",
+]
 
+def insert_fiche(data: dict):
+    """Insère une fiche et retourne son id."""
+    sb  = get_supabase()
+    res = sb.table("fiches").insert(data).execute()
+    if res.data:
+        return res.data[0].get("id")
+    return None
 
 def get_fiche_by_id(fiche_id: int):
-    sb = get_supabase()
+    """Retourne une fiche par son id."""
+    sb  = get_supabase()
     res = sb.table("fiches").select("*").eq("id", fiche_id).execute()
     return res.data[0] if res.data else None
 
-def insert_fiche(data: dict):
-    sb = get_supabase()
-    sb.table("fiches").insert(data).execute()
+def get_all_fiches() -> pd.DataFrame:
+    """Retourne toutes les fiches valides sous forme de DataFrame."""
+    sb  = get_supabase()
+    res = (
+        sb.table("fiches")
+        .select("*")
+        .eq("valide", 1)
+        .order("date_collecte", desc=True)
+        .execute()
+    )
+    if not res.data:
+        return pd.DataFrame(columns=FICHES_COLUMNS)
+    return pd.DataFrame(res.data)
 
-# — Recommandations —
-def get_recommandations(region=None, culture=None, saison=None):
-    sb = get_supabase()
+def get_fiches_user(user_id: str) -> pd.DataFrame:
+    """Retourne les fiches d'un utilisateur donné."""
+    sb  = get_supabase()
+    res = sb.table("fiches").select("*").eq("user_id", user_id).execute()
+    if not res.data:
+        return pd.DataFrame(columns=FICHES_COLUMNS)
+    return pd.DataFrame(res.data)
+
+
+# ── Stats rapides ─────────────────────────────────────────────
+def get_stats_rapides() -> dict:
+    """Retourne les statistiques globales de la base."""
+    sb    = get_supabase()
+    res   = sb.table("fiches").select("id, culture, region, superficie_ha, rendement_kg_ha").eq("valide", 1).execute()
+    rows  = res.data or []
+    nb_f  = len(rows)
+    nb_cu = len(set(r["culture"] for r in rows if r.get("culture")))
+    nb_re = len(set(r["region"]  for r in rows if r.get("region")))
+    sup_t = round(sum(r.get("superficie_ha", 0) or 0 for r in rows), 1)
+    return {
+        "nb_fiches":     nb_f,
+        "nb_cultures":   nb_cu,
+        "nb_regions":    nb_re,
+        "superficie_tot": sup_t,
+    }
+
+
+# ── Recommandations ───────────────────────────────────────────
+def get_recommandations(region=None, culture=None, saison=None) -> pd.DataFrame:
+    sb    = get_supabase()
     query = sb.table("recommandations").select("*").eq("actif", 1)
     if region:
-        query = query.in_("region", [region, "Toutes"])
+        query = query.in_("region",  [region,  "Toutes"])
     if culture:
         query = query.in_("culture", [culture, "Toutes"])
     if saison:
-        query = query.in_("saison", [saison, "Toute saison"])
+        query = query.in_("saison",  [saison,  "Toute saison"])
     res = query.order("priorite").execute()
     return pd.DataFrame(res.data) if res.data else pd.DataFrame()
 
-# — Climat —
-def get_climat_region(region: str):
-    sb = get_supabase()
+
+# ── Climat ────────────────────────────────────────────────────
+def get_climat_region(region: str) -> pd.DataFrame:
+    sb  = get_supabase()
     res = sb.table("climat").select("*").eq("region", region).order("mois").execute()
     return pd.DataFrame(res.data) if res.data else pd.DataFrame()
