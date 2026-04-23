@@ -52,22 +52,20 @@ def show():
             with c5:
                 lon = st.number_input("Longitude GPS", min_value=8.0, max_value=16.5,
                                       value=8.0, step=0.0001, format="%.4f")
-            c6, c7 = st.columns(2)
+            c6 = st.columns(2)
             with c6:
                 membre_coop = st.radio("Membre d'une coopérative ?", ["Non", "Oui"], horizontal=True)
-            with c7:
-                formation   = st.radio("Formation agricole reçue ?", ["Non", "Oui"], horizontal=True)
 
         # SECTION 2 — Culture
         with st.expander("🌱 SECTION 2 — Informations sur la culture", expanded=True):
-            c8, c9, c10 = st.columns(3)
-            with c8:
+            c7, c8, c9 = st.columns(3)
+            with c7:
                 culture   = st.selectbox("Culture pratiquée *", ["— Choisir —"] + CULTURES)
                 variete   = st.text_input("Variété", placeholder="Ex: CMS 8704")
-            with c9:
+            with c8:
                 saison    = st.selectbox("Saison *", ["— Choisir —"] + SAISONS)
                 age_plant = st.number_input("Âge plantation (ans)", 0, 50, 1)
-            with c10:
+            with c9:
                 ref_rdmt  = int(RENDEMENTS_REF.get(
                     culture if culture != "— Choisir —" else "Maïs", 1000))
                 superficie = st.number_input("Superficie (ha) *", 0.01, 1000.0,
@@ -76,31 +74,31 @@ def show():
                     f"📊 Rendement (kg/ha) *\n_Réf: {ref_rdmt:,} kg/ha_",
                     0, 200000, 1000, 50)
 
-            c11, c12 = st.columns(2)
-            with c11:
+            c10, c11 = st.columns(2)
+            with c10:
                 type_sol    = st.selectbox("🪨 Type de sol", TYPES_SOL)
                 qualite_sol = st.select_slider(
                     "Qualité du sol",
                     ["Très peu fertile", "Peu fertile", "Moyennement fertile",
                      "Fertile", "Très fertile"],
                     value="Fertile")
-            with c12:
+            with c11:
                 prix_vente   = st.number_input("💰 Prix de vente (FCFA/kg)", 0, 50000, 200, 10)
                 acces_marche = st.number_input("🛣️ Distance au marché (km)", 0, 500, 10)
 
         # SECTION 3 — Intrants
         with st.expander("🧪 SECTION 3 — Intrants et pratiques", expanded=False):
-            c13, c14, c15 = st.columns(3)
-            with c13:
+            c12, c13, c14 = st.columns(3)
+            with c12:
                 engrais  = st.selectbox("Type d'engrais", ENGRAIS)
                 dose_eng = st.number_input("Dose engrais (kg/ha)", 0, 1000, 0, 10,
                                            disabled=(engrais == "Aucun"))
-            with c14:
+            with c13:
                 irrigation = st.radio("Irrigation ?", ["Non", "Oui"], horizontal=True)
                 source_eau = st.selectbox("Source d'eau",
                                           ["—", "Pluie", "Cours d'eau", "Forage",
                                            "Barrage", "Puits"])
-            with c15:
+            with c14:
                 main_oeuvre = st.selectbox("Main-d'œuvre",
                                            ["Familiale", "Salariée", "Mixte"])
                 nb_actifs   = st.number_input("Nombre d'actifs", 1, 50, 2)
@@ -189,7 +187,6 @@ def show():
                 "acces_marche_km":      acces_marche,
                 "prix_vente_fcfa_kg":   prix_vente,
                 "revenu_estime":        rev_est,
-                "formation_recue":      formation,
                 "membre_cooperative":   membre_coop,
                 "problemes":            ", ".join(problemes_sel) if problemes_sel else "Aucun",
                 "solutions_appliquees": solutions.strip(),
