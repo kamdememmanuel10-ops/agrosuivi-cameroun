@@ -161,14 +161,10 @@ def show():
         else:
             stats      = get_stats_rapides()
             code_fiche = f"AGR-{date_col.year}-{stats['nb_fiches'] + 1:04d}"
-            # Vérifier que l'utilisateur est connecté
-            if "user" not in st.session_state or not st.session_state["user"]:
-                  st.error("Session expirée. Veuillez vous reconnecter.")
-                  st.stop()
             data = {
                 "code_fiche":           code_fiche,
                 "date_collecte":        date_col.isoformat(),
-                "user_id":              st.session_state["user"]["id"],
+                "user_id":              "anonymous",
                 "nom_exploitant":       nom.strip(),
                 "telephone":            telephone.strip(),
                 "region":               region,
