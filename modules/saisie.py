@@ -10,7 +10,7 @@ def show():
 
     # ── Succès après enregistrement ──────────────────────────
     if st.session_state.get("fiche_ok"):
-        code    = st.session_state.pop("fiche_ok")
+        code     = st.session_state.pop("fiche_ok")
         fiche_id = st.session_state.pop("fiche_id", None)
         st.markdown(f"""
         <div class="alert-success">
@@ -18,7 +18,6 @@ def show():
         </div><br>
         """, unsafe_allow_html=True)
 
-        # Bouton téléchargement PDF immédiat
         if fiche_id:
             _bouton_pdf_direct(fiche_id, code)
 
@@ -52,7 +51,9 @@ def show():
             with c5:
                 lon = st.number_input("Longitude GPS", min_value=8.0, max_value=16.5,
                                       value=8.0, step=0.0001, format="%.4f")
-            c6 = st.columns(2)
+
+            # ✅ CORRECTION : c6 correctement déballé
+            c6, _ = st.columns(2)
             with c6:
                 membre_coop = st.radio("Membre d'une coopérative ?", ["Non", "Oui"], horizontal=True)
 
@@ -119,7 +120,7 @@ def show():
             rev_est  = round(prod_tot * prix_vente, 0)
             ref_cult = RENDEMENTS_REF.get(
                 culture if culture != "— Choisir —" else "Maïs", 1000)
-            comparaison = "✅ Au-dessus" if rendement >= ref_cult else "⚠️ En dessous"
+            comparaison  = "✅ Au-dessus" if rendement >= ref_cult else "⚠️ En dessous"
             couleur_comp = "#43a047" if rendement >= ref_cult else "#e65100"
             st.markdown(f"""
             <div style='background:#e8f5e9;border:1px solid #a5d6a7;border-radius:10px;
@@ -220,6 +221,7 @@ def _bouton_pdf_direct(fiche_id: int, code_fiche: str):
         from modules.rapport_pdf import generer_rapport_pdf
         fiche = get_fiche_by_id(fiche_id)
         if fiche:
+            # ✅ Pas besoin de session user, valeur par défaut
             agent = st.session_state.get("user", {}).get("nom", "Agent")
             pdf_bytes = generer_rapport_pdf(fiche, agent_nom=agent)
             st.download_button(
